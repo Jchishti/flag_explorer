@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'explore_screen.dart';
 import 'flag_coloring_screen.dart';
 import 'quiz_screen.dart';
+import 'state_flag_challenge_screen.dart';
 import 'world_map_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -41,6 +42,18 @@ class HomeScreen extends StatelessWidget {
                       crossAxisSpacing: 16,
                       childAspectRatio: isWide ? 1.0 : 1.1,
                       children: [
+                        _NavCard(
+                          icon: Icons.flag,
+                          label: 'US State\nFlags',
+                          color: Colors.red,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const StateFlagChallengeScreen(),
+                            ),
+                          ),
+                        ),
                         _NavCard(
                           icon: Icons.explore,
                           label: 'Explore',
