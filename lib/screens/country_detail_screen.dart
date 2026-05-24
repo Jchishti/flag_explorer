@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/country.dart';
 import '../models/subdivision_data.dart';
 import '../services/greeting_service.dart';
+import 'country_map_screen.dart';
 import 'subdivision_quiz_screen.dart';
 import 'subdivisions_screen.dart';
 
@@ -126,6 +127,35 @@ class CountryDetailPanel extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── Fun fact ──
+            // ── See Map button ──
+            if (hasCountryMap(country.isoCode))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(200, 48),
+                      side: BorderSide(color: color),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: Icon(Icons.zoom_in_map, color: color, size: 22),
+                    label: Text(
+                      'See Map with States & Provinces',
+                      style: TextStyle(color: color, fontSize: 16),
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CountryMapScreen(country: country),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
             // ── Subdivisions buttons ──
             if (hasSubdivisions(country.isoCode))
               Builder(builder: (context) {

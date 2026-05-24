@@ -5,6 +5,7 @@ import 'package:interactive_world_map/interactive_world_map.dart';
 import '../models/country.dart';
 import '../models/country_data.dart';
 import '../services/greeting_service.dart';
+import 'country_map_screen.dart';
 
 /// Reverse-resolve the map's internal IDs back to ISO alpha-2.
 String _mapIdToIso(String mapId) {
@@ -180,18 +181,49 @@ class _CountrySheet extends StatelessWidget {
               '${country.greeting}  (${country.greetingPronunciation})', color),
           const SizedBox(height: 16),
 
-          // Say hello
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: color,
-              minimumSize: const Size(180, 48),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            icon: const Icon(Icons.volume_up_rounded, size: 20),
-            label: Text('Say "${country.greeting}"'),
-            onPressed: () =>
-                GreetingService.instance.speakGreeting(country),
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: color,
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(Icons.volume_up_rounded, size: 20),
+                  label: Text('Say "${country.greeting}"'),
+                  onPressed: () =>
+                      GreetingService.instance.speakGreeting(country),
+                ),
+              ),
+              if (hasCountryMap(country.isoCode)) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: color),
+                      minimumSize: const Size(0, 48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: Icon(Icons.zoom_in_map, size: 20, color: color),
+                    label: Text('See Map',
+                        style: TextStyle(color: color)),
+                    onPressed: () {
+                      Navigator.pop(context); // close sheet
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CountryMapScreen(country: country),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
           ),
 
           // Fun fact
