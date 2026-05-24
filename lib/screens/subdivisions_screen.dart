@@ -49,17 +49,40 @@ class SubdivisionsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  // Name + capital
+                  // Name + details
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          s.name,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s.name,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (s.hasStateInfo)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '#${s.orderAdmitted} • ${s.yearAdmitted}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: color,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -69,6 +92,17 @@ class SubdivisionsScreen extends StatelessWidget {
                             color: Colors.grey[600],
                           ),
                         ),
+                        if (s.stateBird != null) ...
+                          [
+                            const SizedBox(height: 2),
+                            Text(
+                              '🐦 ${s.stateBird}  •  🌲 ${s.stateTree}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
                       ],
                     ),
                   ),
