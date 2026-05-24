@@ -245,26 +245,29 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
             ),
           ),
 
-          // Info panel at bottom
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade300),
+          // Info panel at bottom — tap to expand
+          GestureDetector(
+            onTap: _selectedName != null ? () => _showStateDetail(color) : null,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade300),
+                ),
               ),
-            ),
-            child: _selectedName != null
-                ? _buildInfoPanel(color)
-                : Text(
-                    'Tap a state or province to learn more',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[500],
+              child: _selectedName != null
+                  ? _buildInfoPanel(color)
+                  : Text(
+                      'Tap a state or province to learn more',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[500],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+            ),
           ),
         ],
       ),
@@ -347,29 +350,135 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
                   color: color,
                 ),
               ),
-              if (sub != null) ...[
-                const SizedBox(height: 2),
+              if (sub != null)
                 Text(
                   'Capital: ${sub.capital}',
-                  style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-                if (sub.hasStateInfo) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '#${sub.orderAdmitted} state • Admitted ${sub.yearAdmitted}',
-                    style: TextStyle(fontSize: 13, color: color),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    '🐦 ${sub.stateBird}  •  🌲 ${sub.stateTree}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
-              ],
+              if (sub?.flagCode != null || (sub?.hasStateInfo ?? false))
+                Text(
+                  'Tap for details',
+                  style: TextStyle(fontSize: 12, color: color),
+                ),
             ],
           ),
         ),
+        if (sub?.flagCode != null || (sub?.hasStateInfo ?? false))
+          Icon(Icons.expand_less, color: color, size: 22),
       ],
+    );
+  }
+
+  void _showStateDetail(Color color) {
+    final sub = _findSub(_selectedName!);
+    if (sub == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 36),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Large flag
+              if (sub.flagCode != null)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: StateFlag(
+                    flagCode: sub.flagCode!,
+                    width: 220,
+                    height: 146,
+                    borderRadius: 12,
+                  ),
+                ),
+              const SizedBox(height: 20),
+
+              // Name
+              Text(
+                sub.name,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Details
+              _detailRow(Icons.location_city, 'Capital', sub.capital, color),
+              if (sub.hasStateInfo) ...[
+                _detailRow(
+                  Icons.tag,
+                  'Admitted',
+                  '#${sub.orderAdmitted} of 50 — ${sub.yearAdmitted}',
+                  color,
+                ),
+                _detailRow(Icons.flutter_dash, 'State Bird',
+                    sub.stateBird ?? '', color),
+                _detailRow(
+                    Icons.park, 'State Tree', sub.stateTree ?? '', color),
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(
+      IconData icon, String label, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(value, style: const TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
     );
   }
 }
