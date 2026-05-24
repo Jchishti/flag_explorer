@@ -40,6 +40,8 @@ dependencies:
   interactive_world_map: ^0.1.3
   countries_world_map: ^1.3.0
   flutter_svg: ^2.3.0
+  cached_network_image: ^3.4.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

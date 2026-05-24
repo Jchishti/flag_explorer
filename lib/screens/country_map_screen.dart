@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/country.dart';
 import '../models/subdivision.dart';
 import '../models/subdivision_data.dart';
+import '../services/wiki_image_service.dart';
 import '../widgets/state_flag.dart';
 
 /// Maps ISO country codes to the countries_world_map instruction strings.
@@ -442,10 +443,22 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
                   '#${sub.orderAdmitted} of 50 — ${sub.yearAdmitted}',
                   color,
                 ),
-                _detailRow(Icons.flutter_dash, 'State Bird',
-                    sub.stateBird ?? '', color),
-                _detailRow(
-                    Icons.park, 'State Tree', sub.stateTree ?? '', color),
+                const SizedBox(height: 12),
+                _ImageInfoRow(
+                  icon: Icons.flutter_dash,
+                  label: 'State Bird',
+                  value: sub.stateBird ?? '',
+                  color: color,
+                  wikiQuery: '${sub.stateBird} bird',
+                ),
+                const SizedBox(height: 8),
+                _ImageInfoRow(
+                  icon: Icons.park,
+                  label: 'State Tree',
+                  value: sub.stateTree ?? '',
+                  color: color,
+                  wikiQuery: sub.stateTree ?? '',
+                ),
               ],
               const SizedBox(height: 8),
             ],
@@ -479,6 +492,118 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A row that shows an icon, label, value, and a Wikipedia thumbnail image.
+class _ImageInfoRow extends StatefulWidget {
+  const _ImageInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.wikiQuery,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  final String wikiQuery;
+
+  @override
+  State<_ImageInfoRow> createState() => _ImageInfoRowState();
+}
+
+class _ImageInfoRowState extends State<_ImageInfoRow> {
+  String? _imageUrl;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  Future<void> _loadImage() async {
+    final url = await WikiImageService.instance.getThumbnail(widget.wikiQuery);
+    if (mounted) {
+      setState(() {
+        _imageUrl = url;
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Thumbnail
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            width: 64,
+            height: 64,
+            child: _loading
+                ? Container(
+                    color: Colors.grey.shade200,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  )
+                : _imageUrl != null
+                    ? Image.network(
+                        _imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _placeholder(),
+                      )
+                    : _placeholder(),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Label + value
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(widget.icon, color: widget.color, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                widget.value,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: Icon(widget.icon, color: Colors.grey.shade400, size: 28),
     );
   }
 }
