@@ -1,4 +1,5 @@
 import 'package:countries_world_map/countries_world_map.dart';
+import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 
 import '../models/country.dart';
@@ -317,44 +318,59 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
 
   Widget _buildInfoPanel(Color color) {
     final sub = _findSub(_selectedName!);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        Text(
-          _selectedName!,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        if (sub != null) ...[
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.location_city, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 6),
-              Text(
-                'Capital: ${sub.capital}',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+        // State/province flag
+        if (sub?.flagCode != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: CountryFlag.fromCountryCode(
+              sub!.flagCode!,
+              theme: const ImageTheme(
+                width: 60,
+                height: 40,
+                shape: RoundedRectangle(8),
               ),
+            ),
+          ),
+        // Details
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: sub?.flagCode != null
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
+            children: [
+              Text(
+                _selectedName!,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              if (sub != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Capital: ${sub.capital}',
+                  style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                ),
+                if (sub.hasStateInfo) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '#${sub.orderAdmitted} state • Admitted ${sub.yearAdmitted}',
+                    style: TextStyle(fontSize: 13, color: color),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    '🐦 ${sub.stateBird}  •  🌲 ${sub.stateTree}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
+              ],
             ],
           ),
-          // US-specific details
-          if (sub.hasStateInfo) ...[
-            const SizedBox(height: 4),
-            Text(
-              '#${sub.orderAdmitted} state • Admitted ${sub.yearAdmitted}',
-              style: TextStyle(fontSize: 14, color: color),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '🐦 ${sub.stateBird}  •  🌲 ${sub.stateTree}',
-              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-            ),
-          ],
-        ],
+        ),
       ],
     );
   }
