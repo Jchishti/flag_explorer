@@ -2,6 +2,7 @@ import 'package:countries_world_map/countries_world_map.dart';
 import 'package:flutter/material.dart';
 
 import '../models/country.dart';
+import '../models/subdivision.dart';
 import '../models/subdivision_data.dart';
 
 /// Maps ISO country codes to the countries_world_map instruction strings.
@@ -156,6 +157,8 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
   String? _selectedId;
   String? _selectedName;
 
+  late final List<Subdivision>? _subs = subdivisionsFor(widget.country.isoCode);
+
   void _onRegionTap(String id, String name, TapUpDetails _) {
     setState(() {
       _selectedId = id;
@@ -163,18 +166,35 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
     });
   }
 
-  /// Try to find the capital from our subdivision data using the tapped name.
-  String? _findCapital(String name) {
-    final subs = subdivisionsFor(widget.country.isoCode);
+  /// Find the matching subdivision from our data.
+  Subdivision? _findSub(String name) {
+    final subs = _subs;
     if (subs == null) return null;
-    // Try exact match first, then contains match.
     for (final s in subs) {
-      if (s.name.toLowerCase() == name.toLowerCase()) return s.capital;
+      if (s.name.toLowerCase() == name.toLowerCase()) return s;
     }
     for (final s in subs) {
       if (s.name.toLowerCase().contains(name.toLowerCase()) ||
           name.toLowerCase().contains(s.name.toLowerCase())) {
-        return s.capital;
+        return s;
+      }
+    }
+    return null;
+  }
+
+  /// Find which province/state the national capital is in.
+  String? _capitalProvince() {
+    final subs = _subs;
+    if (subs == null) return null;
+    final natCapital = widget.country.capital.toLowerCase();
+    for (final s in subs) {
+      if (s.capital.toLowerCase() == natCapital) return s.name;
+    }
+    // Partial match
+    for (final s in subs) {
+      if (s.capital.toLowerCase().contains(natCapital) ||
+          natCapital.contains(s.capital.toLowerCase())) {
+        return s.name;
       }
     }
     return null;
@@ -198,6 +218,14 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
       ),
       body: Column(
         children: [
+          // Country summary header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            color: color.withValues(alpha: 0.06),
+            child: _buildCountrySummary(color),
+          ),
+
           // Map
           Expanded(
             child: InteractiveViewer(
@@ -242,8 +270,53 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
     );
   }
 
+  Widget _buildCountrySummary(Color color) {
+    final subCount = _subs?.length;
+    final capProvince = _capitalProvince();
+    final subLabel = widget.country.isoCode == 'US'
+        ? 'states'
+        : widget.country.isoCode == 'GB'
+            ? 'nations'
+            : 'provinces / regions';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (subCount != null)
+          Text(
+            '$subCount $subLabel',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        const SizedBox(height: 2),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: 'Capital: ${widget.country.capital}',
+                style: TextStyle(
+                    fontSize: 14, color: Colors.grey[700]),
+              ),
+              if (capProvince != null)
+                TextSpan(
+                  text: '  (in $capProvince)',
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                      fontStyle: FontStyle.italic),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoPanel(Color color) {
-    final capital = _findCapital(_selectedName!);
+    final sub = _findSub(_selectedName!);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -255,7 +328,7 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
             color: color,
           ),
         ),
-        if (capital != null) ...[
+        if (sub != null) ...[
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -263,11 +336,24 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
               Icon(Icons.location_city, size: 18, color: Colors.grey[600]),
               const SizedBox(width: 6),
               Text(
-                'Capital: $capital',
+                'Capital: ${sub.capital}',
                 style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
             ],
           ),
+          // US-specific details
+          if (sub.hasStateInfo) ...[
+            const SizedBox(height: 4),
+            Text(
+              '#${sub.orderAdmitted} state • Admitted ${sub.yearAdmitted}',
+              style: TextStyle(fontSize: 14, color: color),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '🐦 ${sub.stateBird}  •  🌲 ${sub.stateTree}',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            ),
+          ],
         ],
       ],
     );
