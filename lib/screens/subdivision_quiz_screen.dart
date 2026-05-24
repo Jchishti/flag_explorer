@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 
 import '../models/subdivision.dart';
+import '../widgets/state_flag.dart';
 
 class SubdivisionQuizScreen extends StatefulWidget {
   const SubdivisionQuizScreen({
@@ -257,13 +257,10 @@ class _SubdivisionQuizScreenState extends State<SubdivisionQuizScreen> {
                     child: Row(
                       children: [
                         if (isFlag && opt.flagCode != null)
-                          CountryFlag.fromCountryCode(
-                            opt.flagCode!,
-                            theme: const ImageTheme(
-                              width: 56,
-                              height: 38,
-                              shape: RoundedRectangle(6),
-                            ),
+                          StateFlag(
+                            flagCode: opt.flagCode!,
+                            width: 56,
+                            height: 38,
                           )
                         else
                           Expanded(

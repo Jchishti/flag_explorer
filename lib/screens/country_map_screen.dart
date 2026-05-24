@@ -1,10 +1,10 @@
 import 'package:countries_world_map/countries_world_map.dart';
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 
 import '../models/country.dart';
 import '../models/subdivision.dart';
 import '../models/subdivision_data.dart';
+import '../widgets/state_flag.dart';
 
 /// Maps ISO country codes to the countries_world_map instruction strings.
 /// Only countries with available map data are included.
@@ -324,13 +324,11 @@ class _CountryMapScreenState extends State<CountryMapScreen> {
         if (sub?.flagCode != null)
           Padding(
             padding: const EdgeInsets.only(right: 14),
-            child: CountryFlag.fromCountryCode(
-              sub!.flagCode!,
-              theme: const ImageTheme(
-                width: 60,
-                height: 40,
-                shape: RoundedRectangle(8),
-              ),
+            child: StateFlag(
+              flagCode: sub!.flagCode!,
+              width: 60,
+              height: 40,
+              borderRadius: 8,
             ),
           ),
         // Details

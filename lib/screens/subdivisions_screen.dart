@@ -1,7 +1,7 @@
-import 'package:country_flags/country_flags.dart';
 import 'package:flutter/material.dart';
 
 import '../models/subdivision.dart';
+import '../widgets/state_flag.dart';
 
 class SubdivisionsScreen extends StatelessWidget {
   const SubdivisionsScreen({
@@ -40,13 +40,10 @@ class SubdivisionsScreen extends StatelessWidget {
                   if (s.flagCode != null)
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: CountryFlag.fromCountryCode(
-                        s.flagCode!,
-                        theme: const ImageTheme(
-                          width: 48,
-                          height: 32,
-                          shape: RoundedRectangle(6),
-                        ),
+                      child: StateFlag(
+                        flagCode: s.flagCode!,
+                        width: 48,
+                        height: 32,
                       ),
                     ),
                   // Name + details
