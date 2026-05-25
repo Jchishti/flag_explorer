@@ -343,8 +343,25 @@ class _QuizScreenState extends State<QuizScreen> {
                       fontSize: 22, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 6),
+                // Read the question aloud
+                GestureDetector(
+                  onTap: () => GreetingService.instance
+                      .speak(_promptText(cat, q.country)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.volume_up_rounded,
+                          size: 18, color: cat.color),
+                      const SizedBox(width: 4),
+                      Text('Read aloud',
+                          style: TextStyle(
+                              fontSize: 13, color: cat.color)),
+                    ],
+                  ),
+                ),
                 if (!isSolo) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text('Ask your grown-up, then tap their answer!',
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       textAlign: TextAlign.center),
@@ -392,11 +409,22 @@ class _QuizScreenState extends State<QuizScreen> {
                               shape: RoundedRectangle(6),
                             ),
                           )
-                        else
+                        else ...[
                           Expanded(
                             child: Text(_optionText(cat, opt),
                                 style: const TextStyle(fontSize: 18)),
                           ),
+                          // Read option aloud
+                          GestureDetector(
+                            onTap: () => GreetingService.instance
+                                .speak(_optionText(cat, opt)),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Icon(Icons.volume_up_rounded,
+                                  size: 20, color: Colors.grey[400]),
+                            ),
+                          ),
+                        ],
                         // Only reveal country name after answering
                         if (cat == QuizCategory.flag && answered)
                           Expanded(
