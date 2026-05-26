@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'explore_screen.dart';
 import 'flag_coloring_screen.dart';
 import 'quiz_screen.dart';
+import 'country_challenge_screen.dart';
 import 'state_flag_challenge_screen.dart';
 import 'world_map_screen.dart';
 
@@ -84,6 +85,18 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const FlagColoringScreen(),
+                            ),
+                          ),
+                        ),
+                        _NavCard(
+                          icon: Icons.emoji_events,
+                          label: 'Country\nChallenge',
+                          color: Colors.amber,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const CountryChallengeScreen(),
                             ),
                           ),
                         ),
