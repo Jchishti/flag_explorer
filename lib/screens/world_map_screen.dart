@@ -72,10 +72,53 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
     );
   }
 
+  void _searchCountry() async {
+    final country = await showSearch<Country?>(
+      context: context,
+      delegate: _CountrySearchDelegate(),
+    );
+    if (country == null || !mounted) return;
+
+    // Zoom to the country and open its sheet.
+    final mapId = defaultMapIdResolver(country.isoCode);
+    if (mapId != null) {
+      _controller.fitToCountries(
+        {mapId},
+        options: const FitOptions(
+          padding: 40,
+          duration: Duration(milliseconds: 400),
+          excludeRemoteIslands: true,
+          remoteIslandLevel: RemoteIslandLevel.main,
+        ),
+      );
+      _controller.selectedId = mapId;
+    }
+
+    // ignore: use_build_context_synchronously
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _CountrySheet(country: country),
+    ).whenComplete(() {
+      _controller.selectedId = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('World Map')),
+      appBar: AppBar(
+        title: const Text('World Map'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search countries',
+            onPressed: _searchCountry,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Continent zoom chips
@@ -275,6 +318,68 @@ class _Row extends StatelessWidget {
               child: Text(value, style: const TextStyle(fontSize: 15))),
         ],
       ),
+    );
+  }
+}
+
+// ─── Country search delegate ─────────────────────────────────────────────────────
+
+class _CountrySearchDelegate extends SearchDelegate<Country?> {
+  @override
+  String get searchFieldLabel => 'Search countries...';
+
+  @override
+  List<Widget>? buildActions(BuildContext context) => [
+        if (query.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () => query = '',
+          ),
+      ];
+
+  @override
+  Widget? buildLeading(BuildContext context) => IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => close(context, null),
+      );
+
+  List<Country> get _results {
+    if (query.isEmpty) return allCountries;
+    final q = query.toLowerCase();
+    return allCountries
+        .where((c) =>
+            c.name.toLowerCase().contains(q) ||
+            c.capital.toLowerCase().contains(q) ||
+            c.isoCode.toLowerCase() == q)
+        .toList();
+  }
+
+  @override
+  Widget buildResults(BuildContext context) => _buildList(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildList(context);
+
+  Widget _buildList(BuildContext context) {
+    final results = _results;
+    return ListView.builder(
+      itemCount: results.length,
+      itemBuilder: (_, i) {
+        final c = results[i];
+        return ListTile(
+          leading: CountryFlag.fromCountryCode(
+            c.isoCode,
+            theme: const ImageTheme(
+              width: 40,
+              height: 28,
+              shape: RoundedRectangle(4),
+            ),
+          ),
+          title: Text(c.name),
+          subtitle: Text('${c.capital} • ${c.continent.label}'),
+          onTap: () => close(context, c),
+        );
+      },
     );
   }
 }

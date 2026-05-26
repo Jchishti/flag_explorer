@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/country.dart';
 import '../models/country_data.dart';
 import '../services/greeting_service.dart';
+import '../services/player_service.dart';
 
 // ─── Quiz enums ──────────────────────────────────────────────────────────────
 
@@ -50,10 +51,26 @@ class _QuizScreenState extends State<QuizScreen> {
 
   final _rng = Random();
 
+  // Shuffled deck to avoid repeat questions.
+  List<Country> _deck = [];
+  int _deckIndex = 0;
+
+  void _resetDeck() {
+    _deck = List<Country>.from(allCountries)..shuffle(_rng);
+    _deckIndex = 0;
+  }
+
+  Country _nextCountry() {
+    if (_deck.isEmpty || _deckIndex >= _deck.length) {
+      _resetDeck();
+    }
+    return _deck[_deckIndex++];
+  }
+
   // ── Question builder ──
 
   _QuizQuestion _buildQuestion() {
-    final correct = allCountries[_rng.nextInt(allCountries.length)];
+    final correct = _nextCountry();
     // For language category, pick wrong answers with *different* languages.
     List<Country> pool;
     if (_category == QuizCategory.language) {
@@ -85,6 +102,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _total = 0;
       _streak = 0;
       _streakAlive = true;
+      _resetDeck();
       _question = _buildQuestion();
     });
   }
@@ -110,6 +128,7 @@ class _QuizScreenState extends State<QuizScreen> {
         }
       } else if (_mode == QuizMode.solo) {
         _streakAlive = false;
+        _saveStreak();
       }
     });
   }
@@ -137,6 +156,85 @@ class _QuizScreenState extends State<QuizScreen> {
         _mode = null;
         _category = null;
       });
+
+  void _showPlayerPicker() {
+    final ps = PlayerService.instance;
+    final nameController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 16),
+            const Text('Who\'s playing?',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            ...ps.players.map((p) => ListTile(
+                  leading: Icon(
+                    p == ps.active ? Icons.check_circle : Icons.circle_outlined,
+                    color: p == ps.active ? Colors.green : Colors.grey,
+                  ),
+                  title: Text(p.name,
+                      style: const TextStyle(fontSize: 18)),
+                  onTap: () {
+                    ps.switchTo(p);
+                    Navigator.pop(ctx);
+                    setState(() {});
+                  },
+                )),
+            const Divider(),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Add new player...',
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    if (name.isNotEmpty) {
+                      ps.addPlayer(name).then((_) {
+                        ps.switchTo(ps.players.last);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        setState(() {});
+                      });
+                    }
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Save the current streak when it ends.
+  void _saveStreak() {
+    if (_category == null || _streak == 0) return;
+    final catKey = 'quiz_${_category!.name}';
+    PlayerService.instance.recordStreak(catKey, _streak);
+  }
 
   // ── Build ──
 
@@ -211,11 +309,38 @@ class _QuizScreenState extends State<QuizScreen> {
   // ── Mode picker ──
 
   Widget _buildModePicker() {
+    final ps = PlayerService.instance;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const SizedBox(height: 24),
+          // Player switcher
+          GestureDetector(
+            onTap: () => _showPlayerPicker(),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    ps.active?.name ?? 'Player 1',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_drop_down, size: 20),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           const Text('How do you want to play?',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center),

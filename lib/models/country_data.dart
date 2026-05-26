@@ -201,6 +201,9 @@ const List<Country> allCountries = [
   Country(name: 'Tonga', isoCode: 'TO', capital: 'Nukuʻalofa', continent: Continent.oceania, language: 'Tongan', greeting: 'Mālō e lelei', greetingPronunciation: 'MAH-lo eh leh-LAY', ttsLocale: 'en', funFact: 'Tonga is the only Pacific island country never colonized.'),
   Country(name: 'Tuvalu', isoCode: 'TV', capital: 'Funafuti', continent: Continent.oceania, language: 'Tuvaluan', greeting: 'Talofa', greetingPronunciation: 'Tah-LOH-fah', ttsLocale: 'en', funFact: 'Tuvalu is one of the smallest countries in the world.'),
   Country(name: 'Vanuatu', isoCode: 'VU', capital: 'Port Vila', continent: Continent.oceania, language: 'Bislama', greeting: 'Halo', greetingPronunciation: 'Ha-lo', ttsLocale: 'en', funFact: 'Vanuatu is one of the happiest countries on Earth.'),
+  // ═══ TERRITORIES & REGIONS ═════════════════════════════════════════
+  Country(name: 'South Georgia and the South Sandwich Islands', isoCode: 'GS', capital: 'King Edward Point', continent: Continent.southAmerica, language: 'English', greeting: 'Hello', greetingPronunciation: 'Heh-loh', ttsLocale: 'en', funFact: 'South Georgia has more penguins than any other island on Earth!'),
+  Country(name: 'Kurdistan', isoCode: 'XK', capital: 'Erbil', continent: Continent.asia, language: 'Kurdish', greeting: 'Silav', greetingPronunciation: 'See-LAV', ttsLocale: 'ku', funFact: 'Kurdistan is a cultural region spanning parts of Iraq, Turkey, Syria, and Iran.'),
 ];
 
 /// Fast lookup by ISO code.
