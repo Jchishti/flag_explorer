@@ -5,16 +5,18 @@ import 'package:flutter/material.dart';
 
 import '../models/country.dart';
 import '../models/country_data.dart';
+import '../models/extended_facts_data.dart';
 import '../services/player_service.dart';
 
 // ─── Medal logic ─────────────────────────────────────────────────────────────
 
 enum Medal { none, bronze, silver, gold }
 
-Medal medalFor(int score) {
-  if (score >= 5) return Medal.gold;
-  if (score >= 4) return Medal.silver;
-  if (score >= 3) return Medal.bronze;
+Medal medalFor(int score, int total) {
+  final pct = score / total;
+  if (pct >= 1.0) return Medal.gold;
+  if (pct >= 0.8) return Medal.silver;
+  if (pct >= 0.6) return Medal.bronze;
   return Medal.none;
 }
 
@@ -201,7 +203,7 @@ class _CountryTile extends StatelessWidget {
 
 // ─── Challenge quiz (5 questions about one country) ──────────────────────────
 
-enum _QType { capital, flag, language, greeting, continent }
+enum _QType { capital, flag, language, greeting, continent, text }
 
 class _ChallengeQuizScreen extends StatefulWidget {
   const _ChallengeQuizScreen({required this.country});
@@ -263,7 +265,7 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
     final contOpts = Continent.values.map((x) => x.label).toList()
       ..shuffle(_rng);
 
-    return [
+    final questions = [
       _CQ(
         type: _QType.capital,
         question: 'What is the capital of ${c.name}?',
@@ -295,6 +297,104 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
         correctIndex: contOpts.indexOf(c.continent.label),
       ),
     ];
+
+    // Extended questions if we have rich data
+    final ext = extendedFactsFor(c.isoCode);
+    if (ext != null) {
+      // Q6: Currency
+      final curWrongs = pick3ExtFrom(others, (x) {
+        final e = extendedFactsFor(x.isoCode);
+        return e?.currency;
+      }, ext.currency);
+      final curOpts = [...curWrongs, ext.currency]..shuffle(_rng);
+      questions.add(_CQ(
+        type: _QType.text,
+        question: 'What currency does ${c.name} use?',
+        options: curOpts,
+        correctIndex: curOpts.indexOf(ext.currency),
+      ));
+
+      // Q7: Landmark
+      final lmWrongs = pick3ExtFrom(others, (x) {
+        final e = extendedFactsFor(x.isoCode);
+        return e?.landmark;
+      }, ext.landmark);
+      final lmOpts = [...lmWrongs, ext.landmark]..shuffle(_rng);
+      questions.add(_CQ(
+        type: _QType.text,
+        question: 'Which famous landmark is in ${c.name}?',
+        options: lmOpts,
+        correctIndex: lmOpts.indexOf(ext.landmark),
+      ));
+
+      // Q8: National animal (if available)
+      if (ext.nationalAnimal != null) {
+        final anWrongs = pick3ExtFrom(others, (x) {
+          final e = extendedFactsFor(x.isoCode);
+          return e?.nationalAnimal;
+        }, ext.nationalAnimal!);
+        final anOpts = [...anWrongs, ext.nationalAnimal!]..shuffle(_rng);
+        questions.add(_CQ(
+          type: _QType.text,
+          question: 'What is the national animal of ${c.name}?',
+          options: anOpts,
+          correctIndex: anOpts.indexOf(ext.nationalAnimal!),
+        ));
+      }
+
+      // Q9: National dish (if available)
+      if (ext.nationalDish != null) {
+        final dishWrongs = pick3ExtFrom(others, (x) {
+          final e = extendedFactsFor(x.isoCode);
+          return e?.nationalDish;
+        }, ext.nationalDish!);
+        final dishOpts = [...dishWrongs, ext.nationalDish!]..shuffle(_rng);
+        questions.add(_CQ(
+          type: _QType.text,
+          question: 'What is a famous dish from ${c.name}?',
+          options: dishOpts,
+          correctIndex: dishOpts.indexOf(ext.nationalDish!),
+        ));
+      }
+
+      // Q10: Population (multiple choice range)
+      final popOpts = [ext.population];
+      for (final o in others) {
+        final oe = extendedFactsFor(o.isoCode);
+        if (oe != null && !popOpts.contains(oe.population)) {
+          popOpts.add(oe.population);
+          if (popOpts.length == 4) break;
+        }
+      }
+      popOpts.shuffle(_rng);
+      questions.add(_CQ(
+        type: _QType.text,
+        question: 'What is the approximate population of ${c.name}?',
+        options: popOpts,
+        correctIndex: popOpts.indexOf(ext.population),
+      ));
+    }
+
+    return questions;
+  }
+
+  /// Helper to pick 3 distinct wrong answers from extended facts.
+  List<String> pick3ExtFrom(
+    List<Country> others,
+    String? Function(Country) extract,
+    String correct,
+  ) {
+    final seen = <String>{correct};
+    final result = <String>[];
+    for (final o in others) {
+      final v = extract(o);
+      if (v != null && !seen.contains(v)) {
+        seen.add(v);
+        result.add(v);
+        if (result.length == 3) break;
+      }
+    }
+    return result;
   }
 
   void _answer(int i) {
@@ -305,8 +405,10 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
     });
   }
 
+  int get _totalQuestions => _questions.length;
+
   void _next() {
-    if (_current >= 4) {
+    if (_current >= _totalQuestions - 1) {
       // Save medal
       PlayerService.instance.recordStreak(_medalKey(widget.country.isoCode), _score);
       setState(() => _finished = true);
@@ -329,7 +431,7 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Text('${_current + 1} / 5',
+              child: Text('${_current + 1} / $_totalQuestions',
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold)),
             ),
@@ -351,7 +453,7 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
           // Progress dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (i) {
+            children: List.generate(_totalQuestions, (i) {
               Color dotColor;
               if (i < _current) {
                 dotColor = Colors.green;
@@ -453,10 +555,10 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
                     borderRadius: BorderRadius.circular(14)),
                 textStyle: const TextStyle(fontSize: 17),
               ),
-              icon: Icon(_current < 4
+              icon: Icon(_current < _totalQuestions - 1
                   ? Icons.arrow_forward_rounded
                   : Icons.emoji_events),
-              label: Text(_current < 4 ? 'Next' : 'See Results'),
+              label: Text(_current < _totalQuestions - 1 ? 'Next' : 'See Results'),
               onPressed: _next,
             ),
           ],
@@ -466,7 +568,7 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
   }
 
   Widget _resultsView(Color color) {
-    final medal = medalFor(_score);
+    final medal = medalFor(_score, _totalQuestions);
     final prevMedal = _savedMedal(widget.country.isoCode);
     final isNew = medal.index > prevMedal.index;
 
@@ -490,7 +592,7 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             Text(
-              '$_score / 5',
+              '$_score / $_totalQuestions',
               style: TextStyle(
                 fontSize: 48,
                 fontWeight: FontWeight.bold,
