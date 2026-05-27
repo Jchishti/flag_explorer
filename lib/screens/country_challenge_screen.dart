@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/country.dart';
 import '../models/country_data.dart';
 import '../models/extended_facts_data.dart';
+import '../services/achievement_service.dart';
 import '../services/player_service.dart';
 
 // ─── Medal logic ─────────────────────────────────────────────────────────────
@@ -411,6 +412,13 @@ class _ChallengeQuizScreenState extends State<_ChallengeQuizScreen> {
     if (_current >= _totalQuestions - 1) {
       // Save medal
       PlayerService.instance.recordStreak(_medalKey(widget.country.isoCode), _score);
+      // Medal achievements
+      final m = medalFor(_score, _totalQuestions);
+      final as_ = AchievementService.instance;
+      if (m == Medal.bronze || m == Medal.silver || m == Medal.gold) as_.unlock('medal_first_bronze');
+      if (m == Medal.silver || m == Medal.gold) as_.unlock('medal_first_silver');
+      if (m == Medal.gold) as_.unlock('medal_first_gold');
+      if (_score == _totalQuestions && _totalQuestions >= 10) as_.unlock('perfect_10');
       setState(() => _finished = true);
       return;
     }

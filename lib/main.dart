@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'screens/home_screen.dart';
+import 'services/achievement_service.dart';
 import 'services/player_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   PlayerService.instance.load();
+  AchievementService.instance.load();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
@@ -21,6 +23,7 @@ class FlagExplorerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: AchievementService.navigatorKey,
       title: 'Flag Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'achievements_screen.dart';
 import 'explore_screen.dart';
 import 'flag_coloring_screen.dart';
 import 'quiz_screen.dart';
@@ -32,7 +33,34 @@ class HomeScreen extends StatelessWidget {
                       color: Colors.grey[600],
                     ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              // Achievements button
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const AchievementsScreen()),
+                ),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.emoji_events, size: 20, color: Colors.amber),
+                      SizedBox(width: 6),
+                      Text('Achievements',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {

@@ -4,6 +4,7 @@ import 'package:interactive_world_map/interactive_world_map.dart';
 
 import '../models/country.dart';
 import '../models/country_data.dart';
+import '../services/achievement_service.dart';
 import '../services/greeting_service.dart';
 import 'country_map_screen.dart';
 
@@ -47,6 +48,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
     if (country == null) return;
 
     _controller.selectedId = mapId;
+    AchievementService.instance.unlock('first_map_tap');
+    if (iso == 'AQ') AchievementService.instance.unlock('antarctica_found');
 
     showModalBottomSheet(
       context: context,
@@ -73,6 +76,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> {
   }
 
   void _searchCountry() async {
+    AchievementService.instance.unlock('map_search');
     final country = await showSearch<Country?>(
       context: context,
       delegate: _CountrySearchDelegate(),

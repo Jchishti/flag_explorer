@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/country.dart';
 import '../models/country_data.dart';
+import '../services/achievement_service.dart';
 import '../services/greeting_service.dart';
 import '../services/player_service.dart';
 
@@ -125,10 +126,21 @@ class _QuizScreenState extends State<QuizScreen> {
         if (_mode == QuizMode.solo && _streakAlive) {
           _streak++;
           if (_streak > _bestStreak) _bestStreak = _streak;
+          // Streak achievements
+          final as_ = AchievementService.instance;
+          if (_streak >= 5) as_.unlock('streak_5');
+          if (_streak >= 10) as_.unlock('streak_10');
+          if (_streak >= 25) as_.unlock('streak_25');
+          if (_streak >= 50) as_.unlock('streak_50');
         }
       } else if (_mode == QuizMode.solo) {
         _streakAlive = false;
         _saveStreak();
+      }
+      // First quiz achievement
+      AchievementService.instance.unlock('first_quiz');
+      if (_mode == QuizMode.teacher) {
+        AchievementService.instance.unlock('teacher_10');
       }
     });
   }
