@@ -205,6 +205,7 @@ const List<Country> allCountries = [
   Country(name: 'South Georgia and the South Sandwich Islands', isoCode: 'GS', capital: 'King Edward Point', continent: Continent.southAmerica, language: 'English', greeting: 'Hello', greetingPronunciation: 'Heh-loh', ttsLocale: 'en', funFact: 'South Georgia has more penguins than any other island on Earth!'),
   Country(name: 'Kurdistan', isoCode: 'XK', capital: 'Erbil', continent: Continent.asia, language: 'Kurdish', greeting: 'Silav', greetingPronunciation: 'See-LAV', ttsLocale: 'ku', funFact: 'Kurdistan is a cultural region spanning parts of Iraq, Turkey, Syria, and Iran.'),
   Country(name: 'Antarctica', isoCode: 'AQ', capital: 'McMurdo Station', continent: Continent.oceania, language: 'English', greeting: 'Hello', greetingPronunciation: 'Heh-loh', ttsLocale: 'en', funFact: 'Antarctica is the coldest, driest, and windiest continent — and has no permanent residents!'),
+  Country(name: 'Greenland', isoCode: 'GL', capital: 'Nuuk', continent: Continent.northAmerica, language: 'Greenlandic', greeting: 'Aluu', greetingPronunciation: 'Ah-LOO', ttsLocale: 'da', funFact: 'Greenland is the world\'s largest island and about 80% of it is covered by an ice sheet!'),
 ];
 
 /// Fast lookup by ISO code.
