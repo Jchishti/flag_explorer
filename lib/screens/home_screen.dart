@@ -149,7 +149,7 @@ class HomeScreen extends StatelessWidget {
               GestureDetector(
                 onTap: () => _showChangelog(context),
                 child: Text(
-                  'v1.5.0',
+                  'v1.5.1',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[400],
@@ -244,6 +244,9 @@ class _ChangelogEntry {
 }
 
 const _changelogEntries = [
+  _ChangelogEntry('v1.5.1 — May 30, 2026', [
+    '🇰🇦 Added Greenland (world\'s largest island, 80% ice sheet!)',
+  ]),
   _ChangelogEntry('v1.5.0 — May 27, 2026', [
     '🏆 Achievement system! 30+ unlockable achievements with animated toast notifications',
     '🎯 Country Challenge: Mario Kart-style per-country quizzes with bronze/silver/gold medals',
